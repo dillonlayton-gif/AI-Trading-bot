@@ -20,15 +20,22 @@ from .store import MarketStore
 async def collect(processor, duration):
     stop = asyncio.Event()
     loop = asyncio.get_running_loop()
-    for sig in (signal.SIGINT, signal.SIGTERM):
-        loop.add_signal_handler(sig, stop.set)
-    timer = loop.call_later(duration, stop.set) if duration else None
+    installed_signals = []
+    timer = None
     try:
+        for sig in (signal.SIGINT, signal.SIGTERM):
+            try:
+                loop.add_signal_handler(sig, stop.set)
+            except NotImplementedError:
+                # Windows event loops do not implement Unix signal handlers.
+                continue
+            installed_signals.append(sig)
+        timer = loop.call_later(duration, stop.set) if duration else None
         await LiveCollector(processor).run(stop)
     finally:
-        if timer:
+        if timer is not None:
             timer.cancel()
-        for sig in (signal.SIGINT, signal.SIGTERM):
+        for sig in installed_signals:
             loop.remove_signal_handler(sig)
 
 
