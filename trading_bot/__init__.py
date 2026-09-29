@@ -1,5 +1,6 @@
-"""Public market data only; this package has no execution capability."""
-from .models import MarketCandle
-from .store import MarketStore
+"""Paper-only trading tools with separate paper and market-data entry points.
 
-__all__ = ["MarketCandle", "MarketStore"]
+The root performs no eager imports. Paper types live in ``trading_bot.core``;
+market-data exports live in ``trading_bot.market_data``. Keeping these imports
+in their own packages lets both CLIs start independently.
+"""
