@@ -63,3 +63,25 @@ SQLite WAL/FULL synchronization stores canonical candles, raw public REST/WS res
 API contracts: [Coinbase WebSocket overview](https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/websocket/websocket-overview), [public endpoints/channels](https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/websocket/websocket-endpoints), [official public REST client](https://github.com/coinbase/coinbase-advanced-py/blob/master/coinbase/rest/public.py), [WebSocket message schemas](https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/advanced-trade-asyncapi.json). External Coinbase connectivity must be confirmed in the deployment environment before a forward-data soak. No order credentials, live execution or Phase 3 logic are included.
 
 See `PHASE2_VALIDATION.md` for this checkpoint's results and outstanding environment/GitHub checks.
+
+
+## Package layout and CLI entry checks
+
+Extract checkpoint ZIPs with their directory structure intact. These files have separate roles:
+
+| File | Role |
+| --- | --- |
+| `trading_bot/__init__.py` | Root namespace, without eager imports |
+| `trading_bot/cli.py` | Phase 1 paper replay and stop commands |
+| `trading_bot/market_data/__init__.py` | MarketCandle and MarketStore exports from the market-data subpackage |
+| `trading_bot/market_data/cli.py` | Phase 2 public data commands, including the Windows signal fix |
+
+The repeated filenames belong to their containing folders; preserve the full paths when copying updates. Check both entry points after extraction:
+
+```bash
+python -m trading_bot.cli --help
+python -m trading_bot.market_data.cli --help
+python -m unittest discover -s tests -v
+```
+
+Package-entry regression tests launch fresh Python subprocesses to import the public package paths, display market-data help, replay archived market candles and run the original paper sample. Wheel validation also checks installed CLI entry points from outside the source directory.
