@@ -3,10 +3,13 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 [project]
 name = "guarded-paper-trader"
-version = "0.1.0"
+version = "0.2.0"
 requires-python = ">=3.11"
 description = "Paper-only cryptocurrency trading engine"
+[project.optional-dependencies]
+market = ["websockets==16.0"]
 [project.scripts]
 paper-trader = "trading_bot.cli:main"
+market-data = "trading_bot.market_data.cli:main"
 [tool.setuptools.packages.find]
 include = ["trading_bot*"]

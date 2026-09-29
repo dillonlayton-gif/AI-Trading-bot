@@ -1,0 +1,44 @@
+# Phase 2 market-data checkpoint
+
+Date: 2026-09-29 UTC. Runtime: Python 3.12, websockets 16.0.
+Base: published `paper-foundation` commit `026120135a581ea6e23fae0a3dc43a2c6e48ccda`.
+Scope: public market data only. No strategy, AI provider, order credentials, live broker or order submission.
+
+## Results
+
+| Check | Result |
+| --- | --- |
+| Historical/normalization/persistence stage | 13 tests passed before live implementation |
+| Final automated suite | 42 tests passed: original 5 plus 37 market-data tests |
+| Real WebSocket transport | Passed against local async WebSocket server |
+| Concurrent REST recovery | Passed; live ingestion continues during backfill |
+| Failure recovery and replay | Passed, including partial pages, conflicts, rejected payloads and failed backfill |
+| Original paper CSV replay | Passed; cash 9949.5994000, units 0.5, stopped 0 |
+| Synthetic market-data replay | Passed; 7 journal records, 3 canonical rows, 2 finalized candles; identical archive and feed state |
+| Replay SHA-256 | `10f97aaa4635ff41c5ea5a644183d77b0ffee2057dc59e83fd90dfbe1c86250e` |
+| Python wheel build | Passed for package version 0.2.0 |
+| Foundation boundary | Core, paper CLI, original tests and original example CSV unchanged |
+| Credential scan | No provider-token, credential-assignment or private-key pattern matches in tracked project text |
+| External Coinbase historical smoke | Blocked: environment returned an HTML “Site Unavailable / Unable to access this site” page; adapter rejected it |
+| Existing remote Phase 2 branch | Blocked: GitHub branch listing contains only `main` and `paper-foundation` |
+| GitHub publication/CI | Not performed; no remote branch was created or changed |
+
+Local functional validation passes. **The complete Phase 2 checkpoint gate remains pending** until the requested remote branch exists and external public Coinbase REST/WebSocket connectivity is verified in the deployment environment. The local WebSocket test validates framing, subscription, normalization, persistence and clean shutdown, but does not prove Coinbase reachability or authorize real trading. No Phase 3 work was started.
+
+The isolated local branch is named `phase-2-market-data` and is based on the actual published foundation history. Its committed patch can be applied to that foundation or to an existing Phase 2 checkout after confirming the branch base. The original workspace branch, GitHub `main`, and GitHub `paper-foundation` remain untouched.
+
+## Reproduce
+
+```bash
+python -m pip install '.[market]'
+python -m unittest discover -s tests -v
+python scripts/validate_market_data.py
+python scripts/scan_secrets.py
+python -m trading_bot.cli replay data/example.csv --db /tmp/fresh-paper.db --buy-quantity 0.5
+```
+
+Use a fresh paper database path for each sample regression run. Tests use temporary databases and synthetic messages; the WebSocket transport test binds only to localhost. In this restricted execution environment, asyncio socket/thread wakeups required permission outside the sandbox; with permission, the full suite completed in approximately 1.2 seconds.
+
+The scanner reports paths/categories only, never values. It checks known credential/private-key formats and literal credential assignments; a pattern scan cannot prove the absence of every possible secret encoding. Only tracked source, tests, fixtures, documentation and configuration are included in the checkpoint. Generated databases, build output, environment files and credentials are excluded.
+
+The public-data collector is single-writer with explicit freshness thresholds, capped retry/reconnect delays, bounded recovery pages and immutable finalized candles. Continuous forward-data soak, retention, backup/recovery drills and operational deployment validation remain later work. See README for commands and data semantics.
