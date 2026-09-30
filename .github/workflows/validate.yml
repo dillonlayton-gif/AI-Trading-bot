@@ -1,4 +1,4 @@
-name: Offline paper, data, indicators, backtest and recovery validation
+name: Offline paper, data, indicators, backtest recovery and forward-paper validation
 on:
   push:
   pull_request:
@@ -22,5 +22,6 @@ jobs:
       - run: python scripts/validate_indicators.py
       - run: python scripts/validate_backtest.py
       - run: python scripts/validate_recovery.py
+      - run: python scripts/validate_forward.py
       - run: python scripts/scan_secrets.py
       - run: python -m trading_bot.cli replay data/example.csv --db paper-smoke.db --buy-quantity 0.5

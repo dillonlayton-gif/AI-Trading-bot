@@ -11,5 +11,6 @@ market = ["websockets==16.0"]
 [project.scripts]
 paper-trader = "trading_bot.cli:main"
 market-data = "trading_bot.market_data.cli:main"
+forward-paper = "trading_bot.forward.cli:main"
 [tool.setuptools.packages.find]
 include = ["trading_bot*"]

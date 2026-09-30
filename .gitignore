@@ -9,3 +9,10 @@ __pycache__/
 build/
 dist/
 *.egg-info/
+
+# Generated forward-paper operational state
+paper-state/
+*.log
+*.log.*
+runner.lock
+summary.json

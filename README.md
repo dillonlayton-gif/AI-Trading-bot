@@ -449,3 +449,119 @@ and stop writers/checkpoint WAL or use SQLite's backup API before backups. Nativ
 Phase 5 and remote CI are not claimed by Linux local validation. No credentials, live
 execution, autonomous strategy selection or Phase 6 work is implemented.
 See `PHASE5_VALIDATION.md` for verification evidence.
+
+## Phase 6: sustained forward paper sessions
+
+Phase 6 adds the runner in `trading_bot/forward`; the Phase 5 discussion above describes
+that earlier checkpoint. The Phase 1 compatibility CLI and Phase 4 research backtester
+remain unchanged. This new runner uses **only** the Phase 5 durable paper gate. There
+is no authenticated Coinbase client, exchange order transport, AI, strategy optimizer,
+or runtime strategy replacement. Choose `sma_trend` or `macd_trend` explicitly.
+
+The public WebSocket supplies provisional five-minute candles and heartbeats. The
+inherited bounded REST repair confirms closed candles before feature calculation.
+`--seconds` selects 300, 900, 1800, 3600, 7200, 14400, 21600 or 86400; higher periods
+aggregate complete, contiguous UTC-aligned finalized five-minute groups. Partial
+leading/trailing groups are unavailable, never filled in. One-minute forward candles
+are unsupported. Product/timeframe, quantity, feature settings and risk limits are
+fixed and persisted for a run; changing them requires a separate run/state directory.
+
+Signals use only the current finalized candle's causal Phase 3 features. SMA is long
+when close > SMA, otherwise flat, with a flat warm-up until its configured period;
+MACD is long when MACD > signal EMA, otherwise flat, warming up for 34 bars at defaults.
+A prior signal can create an order only at the **next finalized candle's close**.
+This latency model differs explicitly from the Phase 4 research next-open model.
+It applies adverse slippage 0.2% and fee 0.6% each side through the unchanged gate.
+One fixed-quantity long position is opened; a flat signal requests sale of held units.
+No pyramiding, shorting, leverage, automatic liquidation or intrabar fills are added.
+
+The gate retains Phase 5 defaults: order notional <=100 quote units, position and
+portfolio <=20% of projected equity, daily loss 3%, drawdown 10%, one open position,
+maximum mark/receipt age 3600 seconds. Forward trading additionally requires healthy
+feed and a completed candle/receipt no older than 90 seconds. Historic repair bars can
+warm features and advance fresh-enough accounting marks but cannot create orders.
+Stale/disconnected/warming/stopped feeds clear pending signals. A brief degraded REST
+confirmation pause retains the previous signal but permits no processing/fills until
+healthy; catch-up bars outside the trading grace clear it. The next order still needs
+a fresh, contiguous finalized candle. Feed integrity faults remain latched upstream.
+Missing data, accounting continuity faults and inconsistent journals stop closed.
+
+### Windows public-data soak
+
+Use Python 3.11 or newer (examples use 3.12). From the extracted checkpoint directory,
+run these PowerShell commands; activation and exchange accounts are unnecessary:
+
+```powershell
+py -3.12 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -e ".[market]"
+.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+.\.venv\Scripts\python.exe scripts\validate_forward.py
+.\.venv\Scripts\python.exe -m trading_bot.forward.cli --state-dir .\paper-state\btc-sma --run-id btc-sma-soak --strategy sma_trend --product BTC-USD --seconds 300 --quantity 0.0005 --sma-period 20 --duration 86400
+```
+
+That final command runs for 24 hours using **public Coinbase data and simulated paper
+fills only**. Omit `--duration` for continuous operation. Keep the laptop awake, on
+power, with reliable Internet and an accurate UTC-synchronized clock. Firewall/proxy
+must allow the existing public REST and WebSocket hosts. Do not add API keys. The
+0.0005 BTC quantity is explicit; high BTC prices can exceed the 100 quote-unit limit,
+which causes an audited rejection, never automatic sizing or limit changes.
+
+A cold SMA run needs 20 complete selected-timeframe bars; at five minutes this is about
+100 minutes, plus confirmation latency and the following bar for a first possible fill.
+MACD default warm-up is 34 bars. No historical bootstrap or forced trade is provided;
+a soak can legitimately have zero fills. Observe `paper_health`, `paper_event`, public
+transport reconnect/repair messages and `paper-state\btc-sma\operations.log` (10 MB,
+five rotated backups). `summary.json` records sessions, health, orders/fills/rejections,
+cash/equity/P&L, peak/current/max drawdown, daily counts/equity/P&L, risk state and
+reconciliation. The durable event journal records features, signals, fill lifecycle
+and complete accounting snapshots. Transport heartbeat ages/counters, reconnects,
+repair state and integrity errors are in feed health and the market journal.
+
+Repeat the **same** command and state directory to resume; durable IDs and journals
+prevent duplicate processing/fills. Positions and risk latches persist. Session IDs
+are `run-id:0001`, `run-id:0002`, etc. Startup closes a previously active session before
+starting a new one and clears its unexecuted signal. Ctrl+C and duration shutdown stop
+ingestion and drain its bounded outstanding REST request before reconciliation/close.
+Unsupported Windows signal registration is skipped; duration shutdown remains tested.
+If power/process failure interrupts that drain, restart reconciliation is authoritative.
+
+To toggle the persisted kill switch, stop the CLI first and use the runner's audited
+`kill(enabled, reason, aware_utc_time)` API with the **identical ForwardConfig**. Do not
+edit databases or use the risk ledger directly while the forward session owns it.
+There is one OS-held writer lease; it releases on process death. Kill/loss breakers
+also block sells; stopping does not liquidate a position.
+
+A prepared handoff is durable before invoking the gate. After a crash, an already
+committed matching risk event is adopted without retry or a duplicate audit/fill.
+An uncommitted prepared **intent** blocks live startup: the new process has no validated
+feed yet and will not backdate a new fill. Preserve the directory and investigate
+rather than deleting pending rows. Explicit `replay_recovery=True` is limited to offline
+synthetic/replay investigation, runs through the same gate and is not a CLI option.
+The fixture tests exact replay recovery at every handoff boundary; an actual child
+process exit after risk commit also recovers without duplicates.
+
+### Reproduce the Phase 6 checkpoint
+
+```powershell
+.\.venv\Scripts\python.exe scripts\validate_market_data.py
+.\.venv\Scripts\python.exe scripts\validate_indicators.py
+.\.venv\Scripts\python.exe scripts\validate_backtest.py
+.\.venv\Scripts\python.exe scripts\validate_recovery.py
+.\.venv\Scripts\python.exe scripts\validate_forward.py --output forward-result.json
+```
+
+The forward fixture compares uninterrupted execution, restart with an open position,
+and replay from the completed session journal. Pinned SHA-256:
+`f4de9bc4359c96bc3bca55aa3d1069d38dbaf474aee937937feaca2944e6abc7`.
+It has two sessions, 12 bars, four fills, one kill-switch risk rejection and two feed
+pauses. Final cash/equity 9978.31976; realized P&L -21.68024; no open positions.
+
+All 253 local automated tests pass (193 inherited +60 Phase 6). Native Windows and a
+real 24-hour public-data soak have **not** been performed for this checkpoint. Remaining
+limits include full-journal reconstruction cost, no compaction/automated backups,
+no multiwriter/multiproduct service and no automatic recovery across missing finalized
+bars or an outage exceeding the gate's accounting freshness window. If continuity
+cannot be established, the run stops closed instead of fabricating prices/fills.
+Back up all session/risk/market databases and their WAL safely after stopping, or use
+SQLite's backup API. Hash chains detect inconsistency but do not authenticate files
+against an attacker with complete local rewrite access. See `PHASE6_VALIDATION.md`.

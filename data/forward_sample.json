@@ -1,0 +1,248 @@
+{
+  "actions": [
+    {
+      "kind": "start",
+      "as_of": "2026-01-01T00:00:00+00:00"
+    },
+    {
+      "kind": "health",
+      "as_of": "2026-01-01T00:00:00+00:00",
+      "status": "healthy"
+    },
+    {
+      "kind": "candle",
+      "as_of": "2026-01-01T00:05:00+00:00",
+      "candle": {
+        "product": "BTC-USD",
+        "start": "2026-01-01T00:00:00+00:00",
+        "seconds": 300,
+        "open": "100",
+        "high": "100",
+        "low": "100",
+        "close": "100",
+        "volume": "10"
+      },
+      "received_at": "2026-01-01T00:05:00+00:00"
+    },
+    {
+      "kind": "candle",
+      "as_of": "2026-01-01T00:10:00+00:00",
+      "candle": {
+        "product": "BTC-USD",
+        "start": "2026-01-01T00:05:00+00:00",
+        "seconds": 300,
+        "open": "110",
+        "high": "110",
+        "low": "110",
+        "close": "110",
+        "volume": "10"
+      },
+      "received_at": "2026-01-01T00:10:00+00:00"
+    },
+    {
+      "kind": "candle",
+      "as_of": "2026-01-01T00:15:00+00:00",
+      "candle": {
+        "product": "BTC-USD",
+        "start": "2026-01-01T00:10:00+00:00",
+        "seconds": 300,
+        "open": "120",
+        "high": "120",
+        "low": "120",
+        "close": "120",
+        "volume": "10"
+      },
+      "received_at": "2026-01-01T00:15:00+00:00"
+    },
+    {
+      "kind": "candle",
+      "as_of": "2026-01-01T00:20:00+00:00",
+      "candle": {
+        "product": "BTC-USD",
+        "start": "2026-01-01T00:15:00+00:00",
+        "seconds": 300,
+        "open": "115",
+        "high": "115",
+        "low": "115",
+        "close": "115",
+        "volume": "10"
+      },
+      "received_at": "2026-01-01T00:20:00+00:00"
+    },
+    {
+      "kind": "candle",
+      "as_of": "2026-01-01T00:25:00+00:00",
+      "candle": {
+        "product": "BTC-USD",
+        "start": "2026-01-01T00:20:00+00:00",
+        "seconds": 300,
+        "open": "90",
+        "high": "90",
+        "low": "90",
+        "close": "90",
+        "volume": "10"
+      },
+      "received_at": "2026-01-01T00:25:00+00:00"
+    },
+    {
+      "kind": "health",
+      "as_of": "2026-01-01T00:25:00+00:00",
+      "status": "disconnected"
+    },
+    {
+      "kind": "health",
+      "as_of": "2026-01-01T00:30:00+00:00",
+      "status": "stale"
+    },
+    {
+      "kind": "health",
+      "as_of": "2026-01-01T00:35:00+00:00",
+      "status": "healthy"
+    },
+    {
+      "kind": "candle",
+      "as_of": "2026-01-01T00:35:00+00:00",
+      "candle": {
+        "product": "BTC-USD",
+        "start": "2026-01-01T00:25:00+00:00",
+        "seconds": 300,
+        "open": "80",
+        "high": "80",
+        "low": "80",
+        "close": "80",
+        "volume": "10"
+      },
+      "received_at": "2026-01-01T00:30:00+00:00"
+    },
+    {
+      "kind": "candle",
+      "as_of": "2026-01-01T00:35:00+00:00",
+      "candle": {
+        "product": "BTC-USD",
+        "start": "2026-01-01T00:30:00+00:00",
+        "seconds": 300,
+        "open": "95",
+        "high": "95",
+        "low": "95",
+        "close": "95",
+        "volume": "10"
+      },
+      "received_at": "2026-01-01T00:35:00+00:00"
+    },
+    {
+      "kind": "kill",
+      "as_of": "2026-01-01T00:40:00+00:00",
+      "enabled": true,
+      "reason": "fixture operator pause"
+    },
+    {
+      "kind": "candle",
+      "as_of": "2026-01-01T00:40:00+00:00",
+      "candle": {
+        "product": "BTC-USD",
+        "start": "2026-01-01T00:35:00+00:00",
+        "seconds": 300,
+        "open": "105",
+        "high": "105",
+        "low": "105",
+        "close": "105",
+        "volume": "10"
+      },
+      "received_at": "2026-01-01T00:40:00+00:00"
+    },
+    {
+      "kind": "kill",
+      "as_of": "2026-01-01T00:45:00+00:00",
+      "enabled": false,
+      "reason": "fixture operator resume"
+    },
+    {
+      "kind": "candle",
+      "as_of": "2026-01-01T00:45:00+00:00",
+      "candle": {
+        "product": "BTC-USD",
+        "start": "2026-01-01T00:40:00+00:00",
+        "seconds": 300,
+        "open": "110",
+        "high": "110",
+        "low": "110",
+        "close": "110",
+        "volume": "10"
+      },
+      "received_at": "2026-01-01T00:45:00+00:00"
+    },
+    {
+      "kind": "stop",
+      "as_of": "2026-01-01T00:45:00+00:00"
+    },
+    {
+      "kind": "start",
+      "as_of": "2026-01-01T00:45:00+00:00"
+    },
+    {
+      "kind": "health",
+      "as_of": "2026-01-01T00:45:00+00:00",
+      "status": "healthy"
+    },
+    {
+      "kind": "candle",
+      "as_of": "2026-01-01T00:50:00+00:00",
+      "candle": {
+        "product": "BTC-USD",
+        "start": "2026-01-01T00:45:00+00:00",
+        "seconds": 300,
+        "open": "108",
+        "high": "108",
+        "low": "108",
+        "close": "108",
+        "volume": "10"
+      },
+      "received_at": "2026-01-01T00:50:00+00:00"
+    },
+    {
+      "kind": "candle",
+      "as_of": "2026-01-01T00:55:00+00:00",
+      "candle": {
+        "product": "BTC-USD",
+        "start": "2026-01-01T00:50:00+00:00",
+        "seconds": 300,
+        "open": "100",
+        "high": "100",
+        "low": "100",
+        "close": "100",
+        "volume": "10"
+      },
+      "received_at": "2026-01-01T00:55:00+00:00"
+    },
+    {
+      "kind": "candle",
+      "as_of": "2026-01-01T01:00:00+00:00",
+      "candle": {
+        "product": "BTC-USD",
+        "start": "2026-01-01T00:55:00+00:00",
+        "seconds": 300,
+        "open": "95",
+        "high": "95",
+        "low": "95",
+        "close": "95",
+        "volume": "10"
+      },
+      "received_at": "2026-01-01T01:00:00+00:00"
+    },
+    {
+      "kind": "stop",
+      "as_of": "2026-01-01T01:00:00+00:00"
+    }
+  ],
+  "restart_before": 17,
+  "expected": {
+    "sessions": 2,
+    "fills": 4,
+    "risk_rejections": 1,
+    "cash": "9978.31976",
+    "equity": "9978.31976",
+    "realized_pnl": "-21.68024",
+    "fault": false,
+    "pauses": 2
+  }
+}
