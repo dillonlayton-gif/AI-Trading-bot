@@ -1,0 +1,178 @@
+{
+  "synthetic": true,
+  "config": {
+    "sma": 3,
+    "ema": 3,
+    "rsi": 3,
+    "macd_fast": 2,
+    "macd_slow": 4,
+    "macd_signal": 2,
+    "atr": 3,
+    "vwap": 3,
+    "momentum": 2,
+    "volatility": 3,
+    "volume": 3
+  },
+  "candles": [
+    {
+      "product": "BTC-USD",
+      "start": "2026-01-01T00:00:00+00:00",
+      "seconds": 300,
+      "open": "100",
+      "high": "102",
+      "low": "98",
+      "close": "100",
+      "volume": "0"
+    },
+    {
+      "product": "BTC-USD",
+      "start": "2026-01-01T00:05:00+00:00",
+      "seconds": 300,
+      "open": "102",
+      "high": "104",
+      "low": "100",
+      "close": "102",
+      "volume": "0.00000001"
+    },
+    {
+      "product": "BTC-USD",
+      "start": "2026-01-01T00:10:00+00:00",
+      "seconds": 300,
+      "open": "101",
+      "high": "103",
+      "low": "99",
+      "close": "101",
+      "volume": "2"
+    },
+    {
+      "product": "BTC-USD",
+      "start": "2026-01-01T00:15:00+00:00",
+      "seconds": 300,
+      "open": "104",
+      "high": "106",
+      "low": "102",
+      "close": "104",
+      "volume": "4"
+    },
+    {
+      "product": "BTC-USD",
+      "start": "2026-01-01T00:20:00+00:00",
+      "seconds": 300,
+      "open": "108",
+      "high": "110",
+      "low": "106",
+      "close": "108",
+      "volume": "0"
+    },
+    {
+      "product": "BTC-USD",
+      "start": "2026-01-01T00:25:00+00:00",
+      "seconds": 300,
+      "open": "105",
+      "high": "107",
+      "low": "103",
+      "close": "105",
+      "volume": "5"
+    },
+    {
+      "product": "BTC-USD",
+      "start": "2026-01-01T00:30:00+00:00",
+      "seconds": 300,
+      "open": "105",
+      "high": "107",
+      "low": "103",
+      "close": "105",
+      "volume": "3"
+    },
+    {
+      "product": "BTC-USD",
+      "start": "2026-01-01T00:35:00+00:00",
+      "seconds": 300,
+      "open": "110",
+      "high": "112",
+      "low": "108",
+      "close": "110",
+      "volume": "8"
+    },
+    {
+      "product": "BTC-USD",
+      "start": "2026-01-01T00:40:00+00:00",
+      "seconds": 300,
+      "open": "107",
+      "high": "109",
+      "low": "105",
+      "close": "107",
+      "volume": "1"
+    },
+    {
+      "product": "BTC-USD",
+      "start": "2026-01-01T00:45:00+00:00",
+      "seconds": 300,
+      "open": "111",
+      "high": "113",
+      "low": "109",
+      "close": "111",
+      "volume": "0"
+    },
+    {
+      "product": "BTC-USD",
+      "start": "2026-01-01T00:50:00+00:00",
+      "seconds": 300,
+      "open": "109",
+      "high": "111",
+      "low": "107",
+      "close": "109",
+      "volume": "9"
+    },
+    {
+      "product": "BTC-USD",
+      "start": "2026-01-01T00:55:00+00:00",
+      "seconds": 300,
+      "open": "115",
+      "high": "117",
+      "low": "113",
+      "close": "115",
+      "volume": "2"
+    },
+    {
+      "product": "BTC-USD",
+      "start": "2026-01-01T01:00:00+00:00",
+      "seconds": 300,
+      "open": "112",
+      "high": "114",
+      "low": "110",
+      "close": "112",
+      "volume": "4"
+    },
+    {
+      "product": "BTC-USD",
+      "start": "2026-01-01T01:05:00+00:00",
+      "seconds": 300,
+      "open": "118",
+      "high": "120",
+      "low": "116",
+      "close": "118",
+      "volume": "7"
+    },
+    {
+      "product": "BTC-USD",
+      "start": "2026-01-01T01:10:00+00:00",
+      "seconds": 300,
+      "open": "117",
+      "high": "119",
+      "low": "115",
+      "close": "117",
+      "volume": "3"
+    },
+    {
+      "product": "BTC-USD",
+      "start": "2026-01-01T01:15:00+00:00",
+      "seconds": 300,
+      "open": "120",
+      "high": "122",
+      "low": "118",
+      "close": "120",
+      "volume": "6"
+    }
+  ]
+}

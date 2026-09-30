@@ -16,9 +16,9 @@ CSV columns: `time` (timezone-aware ISO 8601), `price` (positive decimal). Repla
 
 1. **Core and paper ledger:** implemented; unit tests and replay command verified locally.
 2. **Market data:** public historical candles and WebSocket recorder implemented; see the Phase 2 commands and validation status below. No trading key or strategy integration.
-3. **Strategy and evaluation:** specify rules before testing, replay unseen periods, account for spread/fees/slippage, compare buy-and-hold, check drawdown and robustness. AI may suggest intents but cannot modify risk limits or ledger.
-4. **Operations:** restart/reconciliation, durable idempotent order IDs, alerting, circuit breakers for stale feeds and API failures, metrics, backup and recovery drills.
-5. **Paper validation:** run forward for weeks with complete logs, reconcile every fill, confirm loss limits, stop behavior and failure recovery. Review results before considering any live capability.
+3. **Indicators/features:** deterministic finalized-candle features implemented; see Phase 3 below.
+4. **Strategy and evaluation:** future work requiring separate authorization; no strategy is implemented.
+5. **Operations and extended paper validation:** future work requiring separate authorization. Real funds remain disconnected.
 
 A Coinbase live broker is deliberately absent. Adding one requires a separate reviewed implementation and explicit decision after the paper gates. Coinbase documents the Advanced Trade Python SDK and REST/WebSocket APIs: https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/sdk
 
@@ -60,7 +60,7 @@ SQLite WAL/FULL synchronization stores canonical candles, raw public REST/WS res
 
 `replay` opens the source database read-only and emits canonical finalized candles in ascending bucket order. `replay-journal` requires a new destination path and replays receipt times, sessions, raw messages and captured recovery results without using the wall clock or network; it compares every decision and the resulting archive. It cannot reconstruct unjournaled manual database edits. Repeated finalized replay gives byte-identical output and hash. This layer imports no paper broker, risk engine, strategy or AI provider, and never submits trading intents.
 
-API contracts: [Coinbase WebSocket overview](https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/websocket/websocket-overview), [public endpoints/channels](https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/websocket/websocket-endpoints), [official public REST client](https://github.com/coinbase/coinbase-advanced-py/blob/master/coinbase/rest/public.py), [WebSocket message schemas](https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/advanced-trade-asyncapi.json). External Coinbase connectivity must be confirmed in the deployment environment before a forward-data soak. No order credentials, live execution or Phase 3 logic are included.
+API contracts: [Coinbase WebSocket overview](https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/websocket/websocket-overview), [public endpoints/channels](https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/websocket/websocket-endpoints), [official public REST client](https://github.com/coinbase/coinbase-advanced-py/blob/master/coinbase/rest/public.py), [WebSocket message schemas](https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/advanced-trade-asyncapi.json). External Coinbase connectivity must be confirmed in the deployment environment before a forward-data soak. No order credentials or live execution are included.
 
 See `PHASE2_VALIDATION.md` for this checkpoint's results and outstanding environment/GitHub checks.
 
@@ -85,3 +85,102 @@ python -m unittest discover -s tests -v
 ```
 
 Package-entry regression tests launch fresh Python subprocesses to import the public package paths, display market-data help, replay archived market candles and run the original paper sample. Wheel validation also checks installed CLI entry points from outside the source directory.
+
+
+## Phase 3: deterministic indicators and features
+
+The independent `trading_bot.indicators` package consumes normalized `MarketCandle` objects.
+It imports only the market-data model and Python standard library. It has no strategy,
+AI, broker, risk-engine, credentials, network or execution dependency. There are no
+signals, intents or trading decisions in this layer.
+
+Run the complete offline gate:
+
+```bash
+python -m unittest discover -s tests -v
+python scripts/validate_market_data.py
+python scripts/validate_indicators.py
+python scripts/validate_indicators.py --output features.jsonl
+python scripts/scan_secrets.py
+python -m trading_bot.cli replay data/example.csv --db fresh-paper.db --buy-quantity 0.5
+```
+
+Use a fresh paper database for each sample replay. The indicator validator uses the
+explicitly synthetic 16-candle fixture `data/indicator_sample.json`, compares batch,
+sequential and repeated replay, and checks a pinned SHA-256 digest. Optional output
+is canonical sorted-key JSONL with decimal strings, `null` values and LF bytes on
+both Windows and Unix. No database or network is needed for this validation.
+
+Example with an existing finalized archive (stop the writer before reproducible replay):
+
+```python
+from pathlib import Path
+from trading_bot.market_data import MarketStore
+from trading_bot.indicators import FeatureConfig, FeatureEngine, calculate
+
+store = MarketStore(Path("market.db"), readonly=True)
+try:
+    # MarketStore.candles defaults to finalized=True; provisional WS rows are excluded.
+    candles = list(store.candles("BTC-USD", 300))
+    config = FeatureConfig()
+    rows = calculate(candles, config, finalized=True)
+    engine = FeatureEngine(config)
+    sequential = tuple(engine.update(c, finalized=True) for c in candles)
+    assert rows == sequential
+finally:
+    store.close()
+```
+
+`finalized=True` is a required caller certification: the model itself has no
+finalization flag. Feed raw/provisional revisions must never be passed as finalized.
+There is no automatic live feed hookup. Sequential updates can consume newly
+REST-finalized candles; they return immutable rows and never revise earlier output.
+For a revised archive, replay a fresh engine rather than editing historical rows.
+
+Each row preserves product, candle start and granularity. `available_at` is the
+bucket end, the earliest candle-close time at which its complete OHLCV can be known;
+actual REST confirmation may occur later. Use that actual receipt time when evaluating
+latency. No current-candle feature is available before its close. Calculation order
+must be ascending, one product and one granularity per engine; no sorting, filling,
+look-ahead, wall-clock reads or external state is used.
+
+All arithmetic uses an isolated Decimal context: 34 significant digits, half-even
+rounding, explicit exponent limits and arithmetic traps. Logarithms and square roots
+use Decimal operations, not binary floats. Outputs are finite Decimal values or
+`None`, with `unavailable` giving `warmup` or `zero_volume` for each missing feature.
+Warm-up is full-window, with no partial estimates. Periods must be integers in
+`[1,10000]`; MACD fast must be smaller than slow. Default periods and definitions:
+
+| Feature | Default | Definition | First available candle in contiguous segment |
+| --- | --- | --- | --- |
+| SMA | 20 | Mean of trailing closes | N |
+| EMA | 20 | Seed with N-close SMA; update E + 2/(N+1) × (close−E) | N |
+| RSI | 14 | Wilder-smoothed gains/losses, seeded from N close changes | N+1 |
+| MACD | 12/26/9 | Fast seeded EMA minus slow seeded EMA; SMA-seeded signal EMA of MACD values | Slow; signal/histogram at Slow+Signal−1 |
+| ATR | 14 | First TR = high−low; later TR = max(high−low, abs(high−previous close), abs(low−previous close)); N-TR mean seed, Wilder smoothing | N |
+| Rolling VWAP | 20 | Sum(((high+low+close)/3) × volume) / sum(volume) over N candles | N, if total volume > 0 |
+| Simple return | 1 change | close/previous close − 1, fraction | 2 |
+| Log return | 1 change | ln(close/previous close) | 2 |
+| Momentum / ROC | 10 | close−close[N bars ago]; close/close[N bars ago]−1, fraction | N+1 |
+| Rolling volatility | 20 | Population standard deviation of N log returns; no annualization | N+1 |
+| Volume SMA | 20 | Mean of trailing N base-asset volumes, including current candle | N |
+| Relative volume | 20 | Current volume / current trailing N-volume mean | N, if denominator > 0 |
+| Volume vs prior | 20 | Current volume / preceding N-volume mean, excluding current candle | N+1, if denominator > 0 |
+
+RSI is 50 for a flat series, 100 for only gains, and 0 for only losses. Zero-volume
+candles are valid and retained; zero VWAP/relative-volume denominators explicitly
+return unavailable. Arbitrarily small positive volumes are retained. Rolling VWAP
+is an OHLC typical-price approximation, not tick VWAP, and does not reset by calendar
+session. Volatility is per candle; changing granularity changes its interpretation.
+
+Invalid prices, OHLC bounds, volumes, schemas or configuration are rejected. Duplicate,
+out-of-order, revised candles and product/granularity changes are rejected without
+changing engine state. Missing buckets raise `DataError` by default. Repair the archive
+and replay, or explicitly use `FeatureConfig(gap_policy="reset")`: a gap then starts a
+new segment, resets every indicator/warm-up, and marks the first row `gap_reset=True`.
+No return is computed across a missing bucket. Arithmetic failure leaves state intact.
+
+The engine retains bounded rolling windows and EMA/Wilder state; batch calculation
+materializes output rows and runs the same sequential algorithm. Persistence of engine
+state across process restarts is not included: rebuild from the finalized archive.
+See `PHASE3_VALIDATION.md` for the verified checkpoint and scope boundary.
