@@ -18,7 +18,7 @@ CSV columns: `time` (timezone-aware ISO 8601), `price` (positive decimal). Repla
 2. **Market data:** public historical candles and WebSocket recorder implemented; see the Phase 2 commands and validation status below. No trading key or strategy integration.
 3. **Indicators/features:** deterministic finalized-candle features implemented; see Phase 3 below.
 4. **Strategy and backtesting:** deterministic offline long/flat baselines implemented; see Phase 4 below.
-5. **Operations and extended paper validation:** future work requiring separate authorization. Real funds remain disconnected.
+5. **Risk and recovery:** durable deterministic paper risk gate and restart reconciliation implemented; see Phase 5 below. Real funds remain disconnected.
 
 A Coinbase live broker is deliberately absent. Adding one requires a separate reviewed implementation and explicit decision after the paper gates. Coinbase documents the Advanced Trade Python SDK and REST/WebSocket APIs: https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/sdk
 
@@ -314,4 +314,138 @@ archives fail. To handle a gap, repair the archive or explicitly split it into i
 runs with fresh capital and report them separately; silently joining those runs is not
 supported. After a process restart, replay from the archived start; checkpoint/resume
 of engine state is not implemented. See `PHASE4_VALIDATION.md` for known fixture results,
-verification evidence and remaining limitations. Phase 5 is not implemented.
+verification evidence and remaining limitations. Phase 5 adds a separate durable risk-gated paper API below.
+
+
+## Phase 5: durable paper risk and recovery
+
+`trading_bot.recovery.DurablePaperLedger` strengthens the original risk assumptions in a
+new, explicit paper-only persistence schema. It consumes normalized finalized candles
+and explicitly supplied intents. Its only financial write operation is `submit`, which
+always runs the deterministic risk reducer. There is no raw fill API, strategy access to
+accounting setters, broker integration, AI, exchange key, network client or live-order
+capability. Phase 4 remains an offline research simulator, not an order/intent route.
+The Phase 1 CLI and broker remain compatibility demonstrations with their original risk
+gate; they do **not** provide the new restart guarantees. Use the durable API for Phase 5.
+Legacy databases are rejected rather than implicitly migrated or guessed.
+
+```bash
+python -m unittest discover -s tests -v
+python scripts/validate_market_data.py
+python scripts/validate_indicators.py
+python scripts/validate_backtest.py
+python scripts/validate_recovery.py
+python scripts/validate_recovery.py --output recovery-result.json
+python scripts/scan_secrets.py
+```
+
+Example with a finalized candle from a completed archive (no autonomous strategy loop):
+
+```python
+from datetime import timedelta
+from decimal import Decimal
+from pathlib import Path
+from trading_bot.recovery import DurablePaperLedger, OrderIntent, RiskLimits
+
+ledger = DurablePaperLedger(Path("durable-paper.db"), Decimal("10000"), RiskLimits())
+try:
+    # candle is a normalized MarketCandle from finalized-only archive data.
+    as_of = candle.start + timedelta(seconds=candle.seconds)
+    decision = ledger.submit(
+        OrderIntent("run1:entry1", candle.product, "BUY", Decimal("0.5")), candle,
+        as_of=as_of, received_at=as_of, health="healthy", finalized=True,
+    )
+    print(decision)
+    print(ledger.snapshot())
+    print(ledger.reconcile().serialize())
+finally:
+    ledger.close()
+```
+
+For forward data, supply the actual recorded receipt/evaluation timestamps and observed
+feed health. All times are UTC-normalized; no wall clock is consulted. Caller health and
+finalization are certifications, not authenticated exchange attestations. This phase
+adds no live collector-to-strategy/order wiring. Paper intents are explicit; a historical
+paper fill uses the supplied finalized close with the configured costs. No Phase 4
+next-open strategy execution is silently converted to a same-close signal fill.
+
+| Risk setting | Default / rule |
+| --- | --- |
+| Max filled order notional | 100 quote units; equality allowed |
+| Max position / portfolio exposure | 0.20 / 0.20 of projected post-cost equity; equality allowed |
+| Daily loss | 0.03 of UTC-day starting marked equity; equality trips a latch |
+| Drawdown | 0.10 from lifetime marked equity peak; equality trips a permanent run latch |
+| Open positions | 1; configurable positive count for a multi-product spot portfolio |
+| Market/receipt/held-position age | 3600 seconds maximum; equality allowed |
+| Fee / slippage | 0.006 / 0.002 each side, matching Phase 1 |
+| Kill switch | Persisted bool with operator reason; explicit audited enable/disable |
+
+Long spot holdings only; no leverage/shorting. SELL quantity cannot exceed held units.
+BUY must have cash for notional plus fee. Position/exposure limits use all held quantities
+at recorded marks and projected equity after costs. This bounds nominal exposure, not
+stop-distance risk; no stop orders or adaptive sizing are added. Stale held marks block
+orders rather than valuing a portfolio from an untrusted price. Prices are marked only
+from healthy, finalized, fresh, contiguous candles. Duplicate/revised/earlier candles,
+granularity changes, invalid OHLC, future timestamps and unhealthy feeds are rejected.
+Each accepted market packet advances one candle. Submit an intent with its packet in one
+operation; do not first mark that same candle and then resubmit it as a new operation.
+
+Order rejection priority is deterministic: duplicate ID/conflict; kill switch; market
+validation; drawdown latch; daily latch; product/intent/equity validity; stale portfolio;
+order notional; sell inventory; cash; open count; position; portfolio exposure; projected
+loss/drawdown. Every typed risk request, including rejected and duplicate attempts, is
+stored in the immutable audit. Invalid API schemas/identifiers fail before admission as
+risk requests. `Decision` contains accepted/reason/intent ID and accepted fill details.
+
+Daily loss latches for the rest of the UTC day even if equity recovers; a new UTC day
+resets its day reference/latch on a valid market packet. Lifetime peak drawdown latches
+for the whole run. Projected fee/slippage losses can trip either breaker without a fill.
+Kill-switch clearing does not clear loss latches. All lockouts block buys **and sells**;
+there is no automatic liquidation. A stop is not a guarantee of a limited final loss on
+an already-open position. Reconciliation failure permanently closes that ledger object;
+restore a trusted verified backup or resolve the inconsistency outside the trading API.
+No automatic repair or cash/position guessing is provided.
+
+SQLite WAL/FULL, `BEGIN IMMEDIATE` and a single transaction atomically commit the raw
+operation, its recomputed risk decision/fill, SHA-256 audit chain and state projection.
+No durable pending operation is normally possible. A process crash before commit rolls
+back the whole operation and its intent ID; after commit, a retry cannot fill again.
+After a lost response, reopen/reconcile and retry with the **same stable ID**. Previously
+accepted/rejected IDs are never reused for a new intent. Equal decimal quantities have
+canonical fingerprints; a changed product/side/quantity with that ID is a conflict.
+Duplicate retries add a rejection audit record but never modify accounting or marks.
+
+Persisted state includes cash, quantity/cost basis by product, realized/unrealized P&L,
+equity, finalized price marks, day/day-start, daily/drawdown latches, lifetime equity peak,
+kill state/reason, last evaluation time, all intent IDs/fingerprints/outcomes, initial cash
+and the exact fixed limits. Partial sales use weighted-average entry basis and allocate
+entry costs proportionally. BUY/SELL fills apply adverse close × 1.002/0.998 and 0.6%
+notional fees. Startup ignores a replacement initial-cash argument and uses the original
+persisted capital; passing different limits fails closed. Limits are frozen/read-only
+and cannot be silently replaced during a run. No risk reset or limit migration API exists.
+
+Startup and every admitted operation check SQLite integrity, metadata/schema, immutable
+trigger definitions, audit sequence/hash links, recomputed risk decisions and fills, and
+exact agreement of reconstructed accounting/risk/ID state with the projection. Reports
+contain a canonical state JSON, event count and audit head; a healthy report has zero
+pending operations. Restart itself appends no event and changes no finalized result.
+Updates/deletes of audit and metadata are blocked by SQLite triggers. Hashes detect
+inconsistent edits; they are not an external signature or protection against an attacker
+with complete database/filesystem rewrite access. Python private members are not an
+untrusted-plugin security sandbox. No AI or untrusted strategy plugin is present.
+
+The synthetic fixture `data/recovery_sample.json` compares uninterrupted execution with
+a mid-run close/reopen while positions and the kill state are persisted. It exercises
+accepted fills, order rejection, kill pause/resume, unhealthy feed retry, partial exits,
+full closure and a duplicate ID retry. All possible fixture restart cuts are also tested.
+Final cash/equity is 1003.83526; realized P&L 3.83526; positions/unrealized P&L are zero;
+kill and loss latches are false; all 14 audit events match exactly. The pinned output
+includes reconstructed state, risk state, all ID outcomes, decisions and the audit log.
+
+Remaining limitations: reconciliation replays the full journal before every operation
+and is intended for modest paper workloads; no compaction, asynchronous multiwriter
+service, backup automation or external audit anchor is included. Coordinate one writer,
+and stop writers/checkpoint WAL or use SQLite's backup API before backups. Native Windows
+Phase 5 and remote CI are not claimed by Linux local validation. No credentials, live
+execution, autonomous strategy selection or Phase 6 work is implemented.
+See `PHASE5_VALIDATION.md` for verification evidence.

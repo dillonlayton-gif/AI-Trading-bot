@@ -1,0 +1,266 @@
+{
+  "synthetic": true,
+  "initial_cash": "1000",
+  "restart_after": 4,
+  "rows": [
+    {
+      "candle": {
+        "product": "BTC-USD",
+        "start": "2026-01-01T00:00:00+00:00",
+        "seconds": 300,
+        "open": "100",
+        "high": "101",
+        "low": "99",
+        "close": "100",
+        "volume": "5"
+      },
+      "health": "healthy",
+      "intent": {
+        "intent_id": "sample:0",
+        "product": "BTC-USD",
+        "side": "BUY",
+        "quantity": ".5"
+      }
+    },
+    {
+      "candle": {
+        "product": "BTC-USD",
+        "start": "2026-01-01T00:05:00+00:00",
+        "seconds": 300,
+        "open": "102",
+        "high": "103",
+        "low": "101",
+        "close": "102",
+        "volume": "5"
+      },
+      "health": "healthy",
+      "intent": {
+        "intent_id": "sample:1",
+        "product": "BTC-USD",
+        "side": "BUY",
+        "quantity": "2"
+      }
+    },
+    {
+      "candle": {
+        "product": "BTC-USD",
+        "start": "2026-01-01T00:10:00+00:00",
+        "seconds": 300,
+        "open": "104",
+        "high": "105",
+        "low": "103",
+        "close": "104",
+        "volume": "5"
+      },
+      "health": "healthy",
+      "intent": {
+        "intent_id": "sample:2",
+        "product": "BTC-USD",
+        "side": "SELL",
+        "quantity": ".2"
+      }
+    },
+    {
+      "candle": {
+        "product": "BTC-USD",
+        "start": "2026-01-01T00:15:00+00:00",
+        "seconds": 300,
+        "open": "105",
+        "high": "106",
+        "low": "104",
+        "close": "105",
+        "volume": "5"
+      },
+      "health": "healthy",
+      "intent": {
+        "intent_id": "sample:3",
+        "product": "BTC-USD",
+        "side": "BUY",
+        "quantity": ".1"
+      },
+      "kill": {
+        "enabled": true,
+        "reason": "operator_pause"
+      }
+    },
+    {
+      "candle": {
+        "product": "BTC-USD",
+        "start": "2026-01-01T00:20:00+00:00",
+        "seconds": 300,
+        "open": "106",
+        "high": "107",
+        "low": "105",
+        "close": "106",
+        "volume": "5"
+      },
+      "health": "healthy",
+      "intent": {
+        "intent_id": "sample:4",
+        "product": "BTC-USD",
+        "side": "SELL",
+        "quantity": ".1"
+      },
+      "kill": {
+        "enabled": false,
+        "reason": "operator_resume"
+      }
+    },
+    {
+      "candle": {
+        "product": "BTC-USD",
+        "start": "2026-01-01T00:25:00+00:00",
+        "seconds": 300,
+        "open": "95",
+        "high": "96",
+        "low": "94",
+        "close": "95",
+        "volume": "5"
+      },
+      "health": "healthy",
+      "intent": {
+        "intent_id": "sample:5",
+        "product": "BTC-USD",
+        "side": "BUY",
+        "quantity": ".1"
+      }
+    },
+    {
+      "candle": {
+        "product": "BTC-USD",
+        "start": "2026-01-01T00:30:00+00:00",
+        "seconds": 300,
+        "open": "110",
+        "high": "111",
+        "low": "109",
+        "close": "110",
+        "volume": "5"
+      },
+      "health": "healthy",
+      "intent": {
+        "intent_id": "sample:6",
+        "product": "BTC-USD",
+        "side": "SELL",
+        "quantity": ".3"
+      }
+    },
+    {
+      "candle": {
+        "product": "BTC-USD",
+        "start": "2026-01-01T00:35:00+00:00",
+        "seconds": 300,
+        "open": "108",
+        "high": "109",
+        "low": "107",
+        "close": "108",
+        "volume": "5"
+      },
+      "health": "degraded",
+      "intent": {
+        "intent_id": "sample:bad-feed",
+        "product": "BTC-USD",
+        "side": "BUY",
+        "quantity": ".1"
+      }
+    },
+    {
+      "candle": {
+        "product": "BTC-USD",
+        "start": "2026-01-01T00:35:00+00:00",
+        "seconds": 300,
+        "open": "108",
+        "high": "109",
+        "low": "107",
+        "close": "108",
+        "volume": "5"
+      },
+      "health": "healthy",
+      "intent": {
+        "intent_id": "sample:7",
+        "product": "BTC-USD",
+        "side": "BUY",
+        "quantity": ".1"
+      }
+    },
+    {
+      "candle": {
+        "product": "BTC-USD",
+        "start": "2026-01-01T00:40:00+00:00",
+        "seconds": 300,
+        "open": "109",
+        "high": "110",
+        "low": "108",
+        "close": "109",
+        "volume": "5"
+      },
+      "health": "healthy",
+      "intent": {
+        "intent_id": "sample:8",
+        "product": "BTC-USD",
+        "side": "SELL",
+        "quantity": ".1"
+      }
+    },
+    {
+      "candle": {
+        "product": "BTC-USD",
+        "start": "2026-01-01T00:40:00+00:00",
+        "seconds": 300,
+        "open": "109",
+        "high": "110",
+        "low": "108",
+        "close": "109",
+        "volume": "5"
+      },
+      "health": "healthy",
+      "intent": {
+        "intent_id": "sample:8",
+        "product": "BTC-USD",
+        "side": "SELL",
+        "quantity": ".1"
+      }
+    },
+    {
+      "candle": {
+        "product": "BTC-USD",
+        "start": "2026-01-01T00:45:00+00:00",
+        "seconds": 300,
+        "open": "100",
+        "high": "101",
+        "low": "99",
+        "close": "100",
+        "volume": "5"
+      },
+      "health": "healthy",
+      "intent": null
+    }
+  ],
+  "expected": {
+    "state": {
+      "cash": "1003.83526",
+      "realized": "3.83526",
+      "equity": "1003.83526",
+      "unrealized": "0",
+      "positions": {},
+      "kill": false,
+      "daily_locked": false,
+      "drawdown_locked": false
+    },
+    "reasons": [
+      "accepted",
+      "order_limit",
+      "accepted",
+      "kill_enabled",
+      "kill_switch",
+      "kill_disabled",
+      "accepted",
+      "accepted",
+      "accepted",
+      "unhealthy_feed",
+      "accepted",
+      "accepted",
+      "duplicate_intent",
+      "marked"
+    ]
+  }
+}
