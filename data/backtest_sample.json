@@ -1,0 +1,267 @@
+{
+  "synthetic": true,
+  "config": {
+    "initial_cash": "1000",
+    "quantity": "1",
+    "fee_fraction": "0.006",
+    "slippage_fraction": "0.002"
+  },
+  "features": {
+    "sma": 2,
+    "ema": 2,
+    "rsi": 2,
+    "macd_fast": 2,
+    "macd_slow": 3,
+    "macd_signal": 2,
+    "atr": 2,
+    "vwap": 2,
+    "momentum": 2,
+    "volatility": 2,
+    "volume": 2,
+    "gap_policy": "reject"
+  },
+  "candles": [
+    {
+      "product": "BTC-USD",
+      "start": "2026-01-01T00:00:00+00:00",
+      "seconds": 300,
+      "open": "10",
+      "high": "11",
+      "low": "9",
+      "close": "10",
+      "volume": "5"
+    },
+    {
+      "product": "BTC-USD",
+      "start": "2026-01-01T00:05:00+00:00",
+      "seconds": 300,
+      "open": "12",
+      "high": "13",
+      "low": "11",
+      "close": "12",
+      "volume": "5"
+    },
+    {
+      "product": "BTC-USD",
+      "start": "2026-01-01T00:10:00+00:00",
+      "seconds": 300,
+      "open": "14",
+      "high": "15",
+      "low": "13",
+      "close": "14",
+      "volume": "5"
+    },
+    {
+      "product": "BTC-USD",
+      "start": "2026-01-01T00:15:00+00:00",
+      "seconds": 300,
+      "open": "12",
+      "high": "13",
+      "low": "11",
+      "close": "12",
+      "volume": "5"
+    },
+    {
+      "product": "BTC-USD",
+      "start": "2026-01-01T00:20:00+00:00",
+      "seconds": 300,
+      "open": "10",
+      "high": "11",
+      "low": "9",
+      "close": "10",
+      "volume": "5"
+    },
+    {
+      "product": "BTC-USD",
+      "start": "2026-01-01T00:25:00+00:00",
+      "seconds": 300,
+      "open": "11",
+      "high": "12",
+      "low": "10",
+      "close": "11",
+      "volume": "5"
+    },
+    {
+      "product": "BTC-USD",
+      "start": "2026-01-01T00:30:00+00:00",
+      "seconds": 300,
+      "open": "13",
+      "high": "14",
+      "low": "12",
+      "close": "13",
+      "volume": "5"
+    },
+    {
+      "product": "BTC-USD",
+      "start": "2026-01-01T00:35:00+00:00",
+      "seconds": 300,
+      "open": "15",
+      "high": "16",
+      "low": "14",
+      "close": "15",
+      "volume": "5"
+    },
+    {
+      "product": "BTC-USD",
+      "start": "2026-01-01T00:40:00+00:00",
+      "seconds": 300,
+      "open": "12",
+      "high": "13",
+      "low": "11",
+      "close": "12",
+      "volume": "5"
+    },
+    {
+      "product": "BTC-USD",
+      "start": "2026-01-01T00:45:00+00:00",
+      "seconds": 300,
+      "open": "14",
+      "high": "15",
+      "low": "13",
+      "close": "14",
+      "volume": "5"
+    },
+    {
+      "product": "BTC-USD",
+      "start": "2026-01-01T00:50:00+00:00",
+      "seconds": 300,
+      "open": "10",
+      "high": "11",
+      "low": "9",
+      "close": "10",
+      "volume": "5"
+    },
+    {
+      "product": "BTC-USD",
+      "start": "2026-01-01T00:55:00+00:00",
+      "seconds": 300,
+      "open": "8",
+      "high": "9",
+      "low": "7",
+      "close": "8",
+      "volume": "5"
+    },
+    {
+      "product": "BTC-USD",
+      "start": "2026-01-01T01:00:00+00:00",
+      "seconds": 300,
+      "open": "12",
+      "high": "13",
+      "low": "11",
+      "close": "12",
+      "volume": "5"
+    },
+    {
+      "product": "BTC-USD",
+      "start": "2026-01-01T01:05:00+00:00",
+      "seconds": 300,
+      "open": "13",
+      "high": "14",
+      "low": "12",
+      "close": "13",
+      "volume": "5"
+    },
+    {
+      "product": "BTC-USD",
+      "start": "2026-01-01T01:10:00+00:00",
+      "seconds": 300,
+      "open": "11",
+      "high": "12",
+      "low": "10",
+      "close": "11",
+      "volume": "5"
+    },
+    {
+      "product": "BTC-USD",
+      "start": "2026-01-01T01:15:00+00:00",
+      "seconds": 300,
+      "open": "10",
+      "high": "11",
+      "low": "9",
+      "close": "10",
+      "volume": "5"
+    }
+  ],
+  "expected": {
+    "sma_trend": {
+      "trades": [
+        [
+          2,
+          4,
+          "-4.192048"
+        ],
+        [
+          6,
+          9,
+          "0.784012"
+        ],
+        [
+          10,
+          11,
+          "-2.144024"
+        ],
+        [
+          13,
+          15,
+          "-3.184036"
+        ]
+      ],
+      "metrics": {
+        "ending_equity": "991.263904",
+        "realized_pnl": "-8.736096",
+        "unrealized_pnl": "0",
+        "trade_count": 4,
+        "fill_count": 8,
+        "win_rate": "0.25",
+        "loss_rate": "0.75",
+        "exposure": "0.5",
+        "max_drawdown": "0.008736096",
+        "total_fees": "0.552096",
+        "total_return": "-0.008736096",
+        "expectancy": "-2.184024"
+      }
+    },
+    "macd_trend": {
+      "trades": [
+        [
+          7,
+          9,
+          "-1.232012"
+        ],
+        [
+          10,
+          11,
+          "-2.144024"
+        ],
+        [
+          13,
+          15,
+          "-3.184036"
+        ]
+      ],
+      "metrics": {
+        "ending_equity": "993.439928",
+        "realized_pnl": "-6.560072",
+        "unrealized_pnl": "0",
+        "trade_count": 3,
+        "fill_count": 6,
+        "win_rate": "0",
+        "loss_rate": "1",
+        "exposure": "0.3125",
+        "max_drawdown": "0.006560072",
+        "total_fees": "0.420072",
+        "total_return": "-0.006560072"
+      }
+    },
+    "benchmark": {
+      "ending_equity": "999.91988",
+      "ending_cash": "989.91988",
+      "ending_units": "1",
+      "total_return": "-0.00008012",
+      "realized_pnl": "0",
+      "unrealized_pnl": "-0.08012",
+      "total_fees": "0.06012",
+      "exposure": "1"
+    }
+  }
+}
